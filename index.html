@@ -18,12 +18,12 @@
             height: 100vh;
             display: flex;
             flex-direction: column;
-            background: #17212b;
+            background: #293138;
         }
 
         .search-bar {
             padding: 16px;
-            background: #0f1a24;
+            background: #151b21;
             display: flex;
             gap: 8px;
         }
@@ -33,8 +33,8 @@
             padding: 8px;
             border-radius: 8px;
             border: none;
-            background: #2a3746;
-            color: #fff;
+            background: linear-gradient(hsla(0,0%,100%,.07),hsla(0,0%,100%,.07)),hsla(0,0%,100%,.03);
+            color: #ffffff;
             font-size: 16px;
         }
 
@@ -48,12 +48,12 @@
 
         .search-button {
             padding: 8px 12px;
-            background: #5288c1;
+            background:linear-gradient(hsla(0, 0%, 100%, 0.144),hsla(0,0%,100%,.07)),hsla(0,0%,100%,.03); 
             color: #fff;
             border: none;
             border-radius: 8px;
             cursor: pointer;
-            display: none;
+            display: flex;
         }
 
         .search-button.visible {
@@ -61,29 +61,29 @@
         }
 
         .transStat-container {
-            flex: 1;
-            overflow-x: hidden;
-            overflow-y: auto;
+
             padding-left: 10px;
             padding-right: 10px;
             display: flex;
             flex-direction: column;
             gap: 5px;
+            background-color: #17212b;
+            margin-top: 10px;
         }
 
         .walletList-container {
             flex: 1;
-            overflow-x: hidden;
-            overflow-y: auto;
             padding-left: 10px;
             padding-right: 10px;
-            display: none;
+            display: flex;
             flex-direction: column;
             gap: 10px;
+            background-color: #17212b;
+            margin-top: 10px;
         }
 
         .tabs {
-            display: flex;
+            display: none;
             border-top: 1px solid #2a3746;
             background: #0f1a24;
         }
@@ -111,7 +111,7 @@
             color: grey;
             cursor: pointer;
             margin: 0;
-            height: 40px;
+            height: 30px;
         }
 
         .wallItem {
@@ -129,11 +129,20 @@
             background: #373c4b;
         }
 
-        .walletList-container::-webkit-scrollbar {
+        .s-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 400px;
+            width: 100%;
+          height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+        .s-container::-webkit-scrollbar {
             width: 5px;
         }
 
-        .walletList-container::-webkit-scrollbar-thumb {
+        .s-container::-webkit-scrollbar-thumb {
             background: #5b89df;
         }
 
@@ -153,8 +162,10 @@
             <input type="text" placeholder="Search wallet..." id="searchInput">
             <button class="search-button" id="searchButton">Search</button>
         </div>
+        <div class="s-container">
         <div class="transStat-container"></div>
         <div class="walletList-container"></div>
+        </div>
         <div class="tabs">
             <div class="tab active">Chats</div>
             <div class="tab">Contacts</div>
@@ -169,13 +180,13 @@
         document.addEventListener('DOMContentLoaded', () => {
       if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.setHeaderColor('#ff0000');
+        window.Telegram.WebApp.setHeaderColor('#151b21');
         console.log("Web App готов:", window.Telegram.WebApp.initData);
       } else {
         console.error("Telegram Web App не инициализирован");
       }
     });
-        input.addEventListener('input', () => button.classList.toggle('visible', input.value.trim()));
+        // input.addEventListener('input', () => button.classList.toggle('visible', input.value.trim()));
 
         async function fetchActions(wallet, offset = 0, callback = console.log) {
             if (!wallet) return;
