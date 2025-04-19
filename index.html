@@ -160,12 +160,21 @@
             <div class="tab">Contacts</div>
         </div>
     </div>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         var tabid = 0;
         var address_book = [], actionTypes = {};
         const $ = (id) => document.getElementById(id);
         const input = $('searchInput'), button = $('searchButton');
-
+        document.addEventListener('DOMContentLoaded', () => {
+      if (window.Telegram && window.Telegram.WebApp) {
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.setHeaderColor('#ff0000');
+        console.log("Web App готов:", window.Telegram.WebApp.initData);
+      } else {
+        console.error("Telegram Web App не инициализирован");
+      }
+    });
         input.addEventListener('input', () => button.classList.toggle('visible', input.value.trim()));
 
         async function fetchActions(wallet, offset = 0, callback = console.log) {
