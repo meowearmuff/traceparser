@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<style>
+    html,
+    body {
+        height: 100vh;
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        background-color: #242730;
+        justify-content: center;
+
+    }
+
+        /* Стили скролла */
+        .walletList::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    .walletList::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    .walletList::-webkit-scrollbar-thumb {
+      background-color: #722e2e;
+      border-radius: 6px;
+      border: 3px solid #f1f1f1;
+    }
+
+    .walletList::-webkit-scrollbar-thumb:hover {
+      background: #37d694;
+    }
+
+    /* Для Firefox */
+  
+    .container {
+        max-width: 1024px;
+        height: 100%;
+        width: 100%;
+        background: linear-gradient(to right, #242730, #1a1c25, #242730);
+
+        padding: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+    }
+
+    .content-container {
+        width: 100%;
+        height: 100%;
+    }
+
+    input[type="search"] {
+        width: 100%;
+        height: 50px;
+        padding: 10px;
+        background-color: transparent;
+        color: #fff;
+        outline: none;
+        border: none;
+    }
+
+
+
+    .search-container {
+        margin-top: 100px;
+        display: flex;
+        width: 80%;
+        flex-direction: row;
+        border: solid;
+        border-radius: 5px;
+        border-width: 1px;
+
+        border-color: rgb(102, 142, 194);
+        background-color: #00000030;
+    }
+
+    .search-button {
+        display: flex;
+        height: 50px;
+        width: 20%;
+        color: #fff;
+        background-color: #5c9ae225;
+        outline: none;
+        border: none;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+    }
+
+    .search-button:hover {
+        background-color: #5c9ae27c;
+    }
+
+    .search-width {
+        width: 20px;
+        color: white;
+        padding-left: 10px;
+        font-size: 14px;
+        height: 23px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .content {
+        display: flex;
+        height: 60%;
+        width: 80%;
+        margin-top: 10px;
+        flex-direction: row;
+        border-color: rgb(102, 142, 194);
+        border-radius: 10px;
+        border-width: 1px;
+        border-style: solid;
+    }
+
+    .statItem {
+        padding: 5px;
+        margin: 0;
+        width: 150px;
+        color: grey;
+
+        display: flex;
+    }
+
+    
+    .wallItem {
+        padding: 5px;
+        margin: 0;
+        width: calc(100% -  10px);
+        color: grey;
+
+        display: flex;
+    }
+
+    .statItem:hover {
+        background: #373c4b;
+    }
+
+    .statContent {
+        background: #1a1c25;
+        display: flex;
+        flex-direction: column;
+        width: 210px;
+        height: 100%;
+        border-radius: 10px;
+        justify-content: flex-end;
+    }
+
+    .contAnalyzeButton {
+        border: none;
+        border-radius: 0 0 10px 0;
+        color: white;
+        justify-content: center;
+        align-items: center;
+        background-color: #4a6f9f;
+        display: flex;
+        width: 100%;
+        height: 40px;
+    }
+
+    .walletList {
+    scrollbar-color: #4a6f9f #00000000;
+    scrollbar-width: thin;
+    display: flex;
+    flex-direction: column;
+    width:  100%;
+    overflow: auto;
+
+    }
+</style>
+
+<body>
+    <div class="container">
+        <div class="search-container">
+            <p class="search-width">0</p>
+            <input type="search" placeholder="Search...">
+            <button class="search-button">GO</button>
+        </div>
+
+        <div class="content">
+            <div class="walletList"></div>
+            <div class="statContent"></div>
+        </div>
+    </div>
+</body>
+<script src="script.js"></script>
+
+</html>

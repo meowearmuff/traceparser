@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram-like App</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #0e141a;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: #17212b;
+        }
+
+        .search-bar {
+            padding: 16px;
+            background: #0f1a24;
+            display: flex;
+            gap: 8px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 8px;
+            border-radius: 8px;
+            border: none;
+            background: #2a3746;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .search-bar input::placeholder {
+            color: #6b7c93;
+        }
+
+        .search-bar input:focus {
+            outline: none;
+        }
+
+        .search-button {
+            padding: 8px 12px;
+            background: #5288c1;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: none;
+        }
+
+        .search-button.visible {
+            display: inline-block;
+        }
+
+        .transStat-container {
+            flex: 1;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding-left: 10px;
+            padding-right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .walletList-container {
+            flex: 1;
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding-left: 10px;
+            padding-right: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tabs {
+            display: flex;
+            border-top: 1px solid #2a3746;
+            background: #0f1a24;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            color: #6b7c93;
+        }
+
+        .tab:hover {
+            background: #2a3746;
+        }
+
+        .tab.active {
+            background: #5288c1;
+            color: #fff;
+        }
+
+        .statItem {
+            padding: 5px;
+            display: flex;
+            color: grey;
+            cursor: pointer;
+            margin: 0;
+            height: 40px;
+        }
+
+        .wallItem {
+            display: flex;
+            cursor: pointer;
+            margin: 0;
+            height: 60px;
+        }
+
+        .statItem:hover {
+            background: #373c4b;
+        }
+
+        .wallItem:hover {
+            background: #373c4b;
+        }
+
+        .walletList-container::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .walletList-container::-webkit-scrollbar-thumb {
+            background: #5b89df;
+        }
+
+        .transStat-container::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .transStat-container::-webkit-scrollbar-thumb {
+            background: #5b89df;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="search-bar">
+            <input type="text" placeholder="Search wallet..." id="searchInput">
+            <button class="search-button" id="searchButton">Search</button>
+        </div>
+        <div class="transStat-container"></div>
+        <div class="walletList-container"></div>
+        <div class="tabs">
+            <div class="tab active">Chats</div>
+            <div class="tab">Contacts</div>
+        </div>
+    </div>
+    <script>
+        var tabid = 0;
+        var address_book = [], actionTypes = {};
+        const $ = (id) => document.getElementById(id);
+        const input = $('searchInput'), button = $('searchButton');
+
+        input.addEventListener('input', () => button.classList.toggle('visible', input.value.trim()));
+
+        async function fetchActions(wallet, offset = 0, callback = console.log) {
+            if (!wallet) return;
+            try {
+                const res = await fetch(`https://toncenter.com/api/v3/actions?account=${wallet}&limit=100&offset=${offset}`);
+                callback(await res.json(), offset, wallet);
+            } catch (err) {
+                console.error('Fetch error:', err);
+            }
+        }
+
+        button.addEventListener('click', () => {
+            const wallet = input.value.trim();
+            if (!wallet) return;
+            fetchActions(wallet, 0, (data, offset, wallet) => {
+                if (!data.actions.length) return;
+                formatAction(offset, data);
+                actionTypes.lastTransition = 100;
+                formatStat();
+                formatWalletList();
+            });
+        });
+        document.querySelectorAll('.tab').forEach(tab => 
+            tab.addEventListener('click', () => {
+                if (tab.classList.contains('active')) return;
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                if(document.querySelector(".transStat-container").style.display != "none"){
+                
+                   document.querySelector(".transStat-container").style.display = "none";
+                    document.querySelector(".walletList-container").style.display = "flex";
+                 
+                }else{
+                 
+                    document.querySelector(".transStat-container").style.display = "flex";
+                    document.querySelector(".walletList-container").style.display = "none";
+                    tabid = 0;
+                    
+                }
+            })
+        );
+
+        function formatStat() {
+            const container = document.querySelector('.transStat-container');
+            container.innerHTML = '';
+            Object.entries(actionTypes).forEach(([type, count]) => {
+                if (!count) return;
+                container.innerHTML += `
+                    <p class="statItem">
+                        <span style="width: 200px">${type}</span>
+                        <span style="width: 100%; color: white; text-align: right">${count}</span>
+                    </p>`;
+            });
+        }
+
+        function formatAction(offset, data) {
+            if (!offset) actionTypes = {};
+            data.actions.forEach(action => {
+                actionTypes[action.type] = (actionTypes[action.type] || 0) + 1;
+            });
+            Object.entries(data.address_book).forEach(([hex, { user_friendly, domain }]) =>
+                address_book.push({ base64: user_friendly, hex, dns: domain })
+            );
+        }
+
+
+        function formatWalletList() {
+            const container = document.querySelector('.walletList-container');
+            container.innerHTML = "";
+            console.log(address_book)
+            address_book.forEach(item => {
+
+
+
+                const p = Object.assign(document.createElement('p'), { className: 'wallItem' });
+
+                const spanType = Object.assign(document.createElement('span'), {
+                    textContent: `${item.base64.toString()} `, style: 'width: 70%; height: 100%; display: block; white-space: pre-wrap; word-wrap: break-word; color: grey;'
+                });
+
+                const spanCount = Object.assign(document.createElement('span'), {
+                    textContent: `${item.dns ? item.dns : ""}`, style: 'width: 200px; color: white; text-align: right; display: flex; justify-content: right;'
+                });
+
+                p.append(spanType, spanCount);
+                container.appendChild(p);
+            });
+
+        }
+
+        function getStatisticsString() {
+            return Object.entries(actionTypes)
+                .filter(([_, value]) => value > 0)
+                .map(([key, value]) => `${key}: ${value}`)
+                .join('\n');
+        }
+    </script>
+</body>
+
+</html>
