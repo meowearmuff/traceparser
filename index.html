@@ -1,147 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trace Parser</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #0e141a;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            background: #293138;
-        }
-
-        .search-bar {
-            padding: 16px;
-            background: #151b21;
-            display: flex;
-            gap: 8px;
-        }
-
-        .search-bar input {
-            flex: 1;
-            padding: 8px;
-            border-radius: 8px;
-            border: none;
-            background: linear-gradient(hsla(0,0%,100%,.07),hsla(0,0%,100%,.07)),hsla(0,0%,100%,.03);
-            color: #ffffff;
-            font-size: 16px;
-        }
-
-        .search-bar input::placeholder {
-            color: #6b7c93;
-        }
-
-        .search-bar input:focus {
-            outline: none;
-        }
-
-        .search-button {
-            padding: 8px 12px;
-            background:linear-gradient(hsla(0, 0%, 100%, 0.144),hsla(0,0%,100%,.07)),hsla(0,0%,100%,.03); 
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: flex;
-        }
-
-        .search-button.visible {
-            display: inline-block;
-        }
-
-        .transStat-container {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            background-color: #17212b;
-            margin-top: 10px;
-        }
-
-        .walletList-container {
-            flex: 1;   
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            background-color: #293138;
-            margin-top: 10px;
-        }
-
-        .tabs {
-            display: none;
-            border-top: 1px solid #2a3746;
-            background: #0f1a24;
-        }
-
-        .statItem {
-            padding: 5px;
-            display: flex;
-            color: grey;
-            cursor: pointer;
-            margin: 0;
-            height: 30px;
-            align-items: center;
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-
-        .wallItem {
-            display: flex;
-            flex-direction: column;
-            cursor: pointer;
-            margin: 0;
-            background-color: #17212b;
-        }
-
-        .statItem:hover {
-            background: #373c4b;
-        }
-
-        .wallItem:hover {
-            background: #373c4b;
-        }
-
-        .s-container {
-            display: flex;
-            flex-direction: column;
-            max-width: 400px;
-            width: 100%;
-            height: 100%;
-            overflow-x: hidden;
-            overflow-y: auto;
-        }
-        .s-container::-webkit-scrollbar {
-            width: 5px;
-        }
-
-        .s-container::-webkit-scrollbar-thumb {
-            background: #5b89df;
-        }
-
-        .loadButton {
-            background: #151b21;
-            display: flex;
-            color: white;
-            height: 60px;
-            justify-content: center;
-            align-items: center;
-            font-size: 16px;
-            border: none;
-            outline: none;;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
-
 <body>
     <div class="container">
         <div class="search-bar">
@@ -149,28 +13,29 @@
             <button class="search-button" id="searchButton">Search</button>
         </div>
         <div class="s-container">
-        <div class="transStat-container"></div>
-        <div class="walletList-container"></div>
+            <div class="transStat-container"></div>
+            <div class="walletList-container"></div>
         </div>
         <Button class="loadButton">Load</Button>
- 
+
     </div>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
-        var tabid = 0;
+        var tabid = 0; var walletx;
         var address_book = [], actionTypes = {};
         var actions = [];
         const $ = (id) => document.getElementById(id);
         const input = $('searchInput'), button = $('searchButton');
         document.addEventListener('DOMContentLoaded', () => {
-      if (window.Telegram && window.Telegram.WebApp) {
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.setHeaderColor('#151b21');
-        window.Telegram.WebApp.setBackgroundColor('#151b21');
-      } else {
-        console.error("Telegram Web App не инициализирован");
-      }
-    });
+
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.ready();
+                window.Telegram.WebApp.setHeaderColor('#151b21');
+                window.Telegram.WebApp.setBackgroundColor('#151b21');
+            } else {
+                console.error("Telegram Web App не инициализирован");
+            }
+        });
         async function fetchActions(wallet, offset = 0, callback = console.log) {
             if (!wallet) return;
             try {
@@ -190,85 +55,116 @@
                 actionTypes.lastTransition = 100;
                 formatStat();
                 formatWalletList();
+                setLoadButton(wallet);
+                document.querySelector('.loadButton').style.display = "flex";
             });
         });
-     
+
 
         function formatStat() {
             const container = document.querySelector('.transStat-container');
             container.innerHTML = '';
             Object.entries(actionTypes).forEach(([type, count]) => {
                 if (!count) return;
-                if(type === "lastTransition") return;
+                if (type === "lastTransition") return;
                 container.innerHTML += `
                     <p class="statItem">
                         <span style="width: 200px">${type}</span>
                         <span style="width: 100%; color: white; text-align: right">${count}</span>
                     </p>`;
-                
+
             });
         }
 
         function formatAction(offset, data) {
-            if (!offset){
-                 actionTypes = {};
-                 actions = [];
+            if (!offset) {
+                actionTypes = {};
+                actions = [];
+                address_book = [];
             }
+            actionTypes.total == null ? actionTypes.total = data.actions.length : actionTypes.total += data.actions.length;
             data.actions.forEach(action => {
                 actions.push(action);
                 actionTypes[action.type] = (actionTypes[action.type] || 0) + 1;
             });
-            Object.entries(data.address_book).forEach(([hex, { user_friendly, domain }]) =>
-                address_book.push({ base64: user_friendly, hex, dns: domain })
-            );
+            Object.entries(data.address_book).forEach(([hex, { user_friendly, domain }]) => {
+                if (!address_book.some(item => item.hex === hex)) address_book.push({ base64: user_friendly, hex, dns: domain })
+            });
         }
 
 
         function formatWalletList() {
             const container = document.querySelector('.walletList-container');
             container.innerHTML = "";
-            console.log(JSON.stringify(actions));
+
 
             address_book.forEach(item => {
-
-
-
                 const p = Object.assign(document.createElement('p'), { className: 'wallItem' });
 
                 const walletSpan = Object.assign(document.createElement('p'), {
                     textContent: `${item.base64.toString()} `, style: 'width: calc(100% - 100px); margin: 0; height: 50px; flex: 1; padding: 10px; display: block; white-space: pre-wrap; word-wrap: break-word; color: grey;'
                 });
 
-                
-                const p2 = Object.assign(document.createElement('p'), { style:"display:flex; flex: 1 1 1; margin: 0;"});
+
+                const p2 = Object.assign(document.createElement('p'), { style: "display:flex; flex: 1 1 1; margin: 0;" });
 
                 const nameSpan = Object.assign(document.createElement('span'), {
                     textContent: `${item.dns ? item.dns : ""}`, style: 'width: 100%; margin: 0; border-left: 2px solid #5b89df; color: #5b89df; padding: 10px; flex: 1; display: flex;'
                 });
 
                 var actions_ = JSON.stringify(actions);
-                const spanCount = Object.assign(document.createElement('span'), {
-                    textContent: (actions_.split("\"destination\"\:\"" + item.hex + "\"").length - 1) + " / " + (actions_.split("\"source\"\:\"" + item.hex + "\"").length - 1), style: 'justify-content: right; margin: 0; border-right: 2px solid #5b89df; color: #5b89df; padding: 10px; height: 20px; display: flex;'
-                });
+                var received = actions_.split("\"source\"\:\"" + item.hex + "\"").length - 1;
+                var sent = actions_.split("\"destination\"\:\"" + item.hex + "\"").length - 1;
+                var nft1 = actions_.split("\"old_owner\"\:\"" + item.hex + "\"").length - 1;
+                var nft2 = actions_.split("\"new_owner\"\:\"" + item.hex + "\"").length - 1;
+                var nft = nft1 + nft2;
+                var text_ = [];
+                if (sent) text_.push("▲ " + sent);
+                if (received) text_.push("▼ " + received);
+                if (nft != 0) text_.push("✦ " + nft);
 
-                if(item.dns != null){
-p.style.flexDirection = "column";
-                 p2.append(nameSpan, spanCount);
-                 } else {
+                //
+                var text = text_.join(" | ")
+                const spanCount = Object.assign(document.createElement('span'), {
+                    textContent: text, style: 'justify-content: right; margin: 0; border-right: 2px solid #5b89df; color: #5b89df; padding: 10px; height: 20px; display: flex;'
+                });
+                if (item.dns != null) {
+                    p.style.flexDirection = "column";
+                    p2.append(nameSpan, spanCount);
+                } else {
                     p.style.flexDirection = "row";
                     p2.append(spanCount);
-                 }
+                }
                 p.append(walletSpan, p2)
                 container.appendChild(p);
             });
 
         }
 
-        function getStatisticsString() {
-            return Object.entries(actionTypes)
-                .filter(([_, value]) => value > 0)
-                .map(([key, value]) => `${key}: ${value}`)
-                .join('\n');
+
+        function setLoadButton(wallet) {
+
+
+
+            document.querySelector(".loadButton").onclick = function () {
+
+
+                fetchActions(wallet, actionTypes.lastTransition, (data, offset, wallet) => {
+                    if (!data || !data.actions) return;
+                    if (!data.actions.length) {
+                        document.querySelector('.loadButton').style.display = "none";
+                        return;
+                    }
+                    formatAction(offset, data);
+                    actionTypes.lastTransition += 100;
+                    formatStat();
+                    formatWalletList();
+
+                    document.querySelector('.loadButton').style.display = "flex";
+                });
+
+
+            };
         }
     </script>
 </body>
