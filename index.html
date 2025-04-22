@@ -13,17 +13,31 @@
             <button class="search-button" id="searchButton">Search</button>
         </div>
         <div class="s-container">
+            <p class="targetAddress"></p>
             <div class="transStat-container"></div>
             <div class="walletList-container"></div>
+            <div class="contractList-container"></div>
+            <div class="commentsList-container"></div>
         </div>
+        <div class="bottomMenu">
         <Button class="loadButton">Load</Button>
-
+        <Button class="menuButton">Menu</Button>
+        </div>
+        <div id="menuOverlay" class="overlay">
+            <div id="menu" class="menu">
+              <button id="closeMenuBtn">Закрыть</button>
+              <p id="walletsTab">Wallets</p>
+              <p id="contractsTab">Contracts</p>
+              <p id="commentsTab">Comments</p>
+            </div>
+          </div>
     </div>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script>
         var tabid = 0; var walletx;
         var address_book = [], actionTypes = {};
         var actions = [];
+        var actionsjson = [];
         const $ = (id) => document.getElementById(id);
         const input = $('searchInput'), button = $('searchButton');
         document.addEventListener('DOMContentLoaded', () => {
@@ -48,6 +62,7 @@
 
         button.addEventListener('click', () => {
             const wallet = input.value.trim();
+            input.value = "";
             if (!wallet) return;
             fetchActions(wallet, 0, (data, offset, wallet) => {
                 if (!data.actions.length) return;
@@ -56,10 +71,64 @@
                 formatStat();
                 formatWalletList();
                 setLoadButton(wallet);
+                loadComments();
+                document.querySelector(".targetAddress").textContent = wallet;
+                document.querySelector('.targetAddress').style.display = "flex";
                 document.querySelector('.loadButton').style.display = "flex";
             });
         });
+        const selectors = {
+  openBtn: '.menuButton',
+  overlay: '#menuOverlay',
+  tabs: {
+    wallets: '#walletsTab',
+    contracts: '#contractsTab',
+    comments: '#commentsTab'
+  },
+  containers: {
+    wallets: '.walletList-container',
+    contracts: '.contractList-container',
+    comments: '.commentsList-container'
+  }
+};
 
+const elements = {
+  openBtn: document.querySelector(selectors.openBtn),
+  overlay: document.querySelector(selectors.overlay)
+};
+
+elements.openBtn.addEventListener('click', () => elements.overlay.classList.add('active'));
+
+
+// Закрытие по клику на оверлей
+elements.overlay.addEventListener('click', (e) => {
+  if (e.target === elements.overlay) elements.overlay.classList.remove('active');
+});
+
+// Закрытие по Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && elements.overlay.classList.contains('active')) {
+    elements.overlay.classList.remove('active');
+  }
+});
+
+// Переключение вкладок
+const tabActions = {
+  wallets: () => showContainer(selectors.containers.wallets),
+  contracts: () => showContainer(selectors.containers.contracts),
+  comments: () => showContainer(selectors.containers.comments)
+};
+
+function showContainer(activeContainer) {
+  Object.values(selectors.containers).forEach(container => {
+    document.querySelector(container).style.display = container === activeContainer ? 'flex' : 'none';
+  });
+  elements.overlay.classList.remove('active');
+}
+
+Object.entries(selectors.tabs).forEach(([tab, selector]) => {
+  document.querySelector(selector).addEventListener('click', tabActions[tab]);
+});
 
         function formatStat() {
             const container = document.querySelector('.transStat-container');
@@ -84,21 +153,58 @@
             }
             actionTypes.total == null ? actionTypes.total = data.actions.length : actionTypes.total += data.actions.length;
             data.actions.forEach(action => {
-                actions.push(action);
+                actionsjson.push(action);
+                actions.push(JSON.stringify(action));
                 actionTypes[action.type] = (actionTypes[action.type] || 0) + 1;
             });
             Object.entries(data.address_book).forEach(([hex, { user_friendly, domain }]) => {
-                if (!address_book.some(item => item.hex === hex)) address_book.push({ base64: user_friendly, hex, dns: domain })
+             var count = actions.toString().split(hex).length;
+             const existing = address_book.find(item => item.hex === hex);
+  if (existing) {
+    existing.count = count;
+  } else {
+    address_book.push({ base64: user_friendly, hex, dns: domain, isWallet: user_friendly.startsWith("UQ"), count})
+
+  }
             });
         }
+        document.addEventListener('keydown', (event) => {
+    if (event.ctrlKey && event.key === 'q') {
+        event.preventDefault();
+        navigator.clipboard.readText()
+    .then(wallet => {
+        fetchActions(wallet, 0, (data, offset, wallet) => {
+                if(!data || !data.actions) return;
+                if (!data.actions.length) return;
+                formatAction(offset, data);
+                actionTypes.lastTransition = 100;
+                formatStat();
+                formatWalletList();
+                setLoadButton(wallet);
+                loadComments();
+                document.querySelector(".targetAddress").textContent = wallet;
+                document.querySelector('.targetAddress').style.display = "flex";
+                document.querySelector('.loadButton').style.display = "flex";
+            });
+    })
+    .catch(err => {
+        console.error('Ошибка при чтении буфера: ', err);
+    });
+
+      
+    }
+});
 
 
         function formatWalletList() {
             const container = document.querySelector('.walletList-container');
             container.innerHTML = "";
+            const container2 = document.querySelector('.contractList-container');
+            container2.innerHTML = "";
 
 
             address_book.forEach(item => {
+                
                 const p = Object.assign(document.createElement('p'), { className: 'wallItem' });
 
                 const walletSpan = Object.assign(document.createElement('p'), {
@@ -112,21 +218,14 @@
                     textContent: `${item.dns ? item.dns : ""}`, style: 'width: 100%; margin: 0; border-left: 2px solid #5b89df; color: #5b89df; padding: 10px; flex: 1; display: flex;'
                 });
 
-                var actions_ = JSON.stringify(actions);
-                var received = actions_.split("\"source\"\:\"" + item.hex + "\"").length - 1;
-                var sent = actions_.split("\"destination\"\:\"" + item.hex + "\"").length - 1;
-                var nft1 = actions_.split("\"old_owner\"\:\"" + item.hex + "\"").length - 1;
-                var nft2 = actions_.split("\"new_owner\"\:\"" + item.hex + "\"").length - 1;
-                var nft = nft1 + nft2;
-                var text_ = [];
-                if (sent) text_.push("▲ " + sent);
-                if (received) text_.push("▼ " + received);
-                if (nft != 0) text_.push("✦ " + nft);
-
+           
                 //
-                var text = text_.join(" | ")
+var text = 0;
+               // actions.forEach(action => { if(JSON.stringify(action).includes(item.hex)) text += 1; console.log(JSON.stringify(action).includes(item.hex)) })
+              //  var text = text_.join(" | ")
+              //  var text = ((actions_.split(item.hex).length - 1) / actionTypes.total ) * 100;
                 const spanCount = Object.assign(document.createElement('span'), {
-                    textContent: text, style: 'justify-content: right; margin: 0; border-right: 2px solid #5b89df; color: #5b89df; padding: 10px; height: 20px; display: flex;'
+                    textContent: item.count + "", style: 'justify-content: right; margin: 0; border-right: 2px solid #5b89df; color: #5b89df; padding: 10px; height: 20px; display: flex;'
                 });
                 if (item.dns != null) {
                     p.style.flexDirection = "column";
@@ -136,36 +235,52 @@
                     p2.append(spanCount);
                 }
                 p.append(walletSpan, p2)
-                container.appendChild(p);
+              if(item.isWallet)  container.appendChild(p); else container2.append(p);
+            
             });
-
         }
 
+        function loadComments(){
+            const container = document.querySelector('.commentsList-container');
+                container.innerHTML = "";
+                  
+            actionsjson.forEach(action => {
+         if(action.details?.comment?.length){
+                const p = Object.assign(document.createElement('p'), { className: 'wallItem' });
 
-        function setLoadButton(wallet) {
-
-
-
-            document.querySelector(".loadButton").onclick = function () {
-
-
-                fetchActions(wallet, actionTypes.lastTransition, (data, offset, wallet) => {
-                    if (!data || !data.actions) return;
-                    if (!data.actions.length) {
-                        document.querySelector('.loadButton').style.display = "none";
-                        return;
-                    }
-                    formatAction(offset, data);
-                    actionTypes.lastTransition += 100;
-                    formatStat();
-                    formatWalletList();
-
-                    document.querySelector('.loadButton').style.display = "flex";
+                const walletSpan = Object.assign(document.createElement('p'), {
+                    textContent: action.details.comment, style: 'width: calc(100% - 100px); margin: 0; height: 50px; flex: 1; padding: 10px; display: block; white-space: pre-wrap; word-wrap: break-word; color: grey;'
                 });
 
 
-            };
+                const p2 = Object.assign(document.createElement('p'), { style: "display:flex; flex: 1 1 1; margin: 0;" });
+
+                const nameSpan = Object.assign(document.createElement('span'), {
+                    textContent: action.trace_id, style: 'width: 100%; margin: 0; text-size: 12px; border-left: 2px solid #5b89df; color: #5b89df; padding: 10px; flex: 1; display: flex;'
+                });
+                nameSpan.onclick = () => window.open('https://tonscan.org/ru/tx/' + action.trace_id, '_blank');
+                const spanCount = Object.assign(document.createElement('span'), {
+                    textContent: new Date(action.start_utime * 1000).toLocaleString(), style: 'justify-content: right; margin: 0; border-right: 2px solid #5b89df; color: #5b89df; padding: 10px; height: 20px; display: flex;'
+                });
+                p2.append(nameSpan, spanCount)
+                p.append(walletSpan, p2)
+              container.appendChild(p);
+         }
+            });
         }
+
+        function setLoadButton(wallet) {
+  document.querySelector('.loadButton').onclick = () => fetchActions(wallet, actionTypes.lastTransition, (data, offset) => {
+    if (!data?.actions?.length) return document.querySelector('.loadButton').style.display = 'none';
+    formatAction(offset, data);
+    actionTypes.lastTransition += 100;
+    formatStat();
+    formatWalletList();
+    console.log('fetched');
+    loadComments();
+    document.querySelector('.loadButton').style.display = 'flex';
+  });
+}
     </script>
 </body>
 
