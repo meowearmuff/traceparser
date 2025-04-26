@@ -4,13 +4,13 @@ const $ = (s) => dc.querySelector(s);
 const show = (element) => element.style.display = "flex";
 const hide = (element) => element.style.display = "none";
 const toggle = (element) => element.classList.toggle('active');
-
+const removeall = (element) => element.innerHTML = '';
 const overlay =  $(".overlay");
 const options = $(".optTabs");
 const btn_top = $(".topButton");
 const btn_back = $(".backButton");
 const btn_load = $(".loadButton")
-
+const trans_stat = $(".transStat-container");
 
 
 var tabid = 0; var walletx;
@@ -172,30 +172,41 @@ function formatWalletList() {
 }
 
 function formatStat() {
-    const container = document.querySelector('.transStat-container');
-    options.style.display = "flex";
-    container.innerHTML = '';
-    Object.entries(actionTypes).forEach(([type, count]) => {
-        if (!count) return;
-        if (type === "lastTransition") return;
-        container.innerHTML += `
-            <p class="statItem">
-                <span style="width: 200px">${type}</span>
-                <span style="width: 100%; color: white; text-align: right">${count}</span>
-            </p>`;
+    show(options);
+    removeall(trans_stat);
 
+    Object.entries(Parser.ActionTypes).forEach(([key, value]) => {
+        if (!value.Count || key === "lastTransition") return;
+        createStatItem(key, value.Count)
     });
 }
 
-
-
-
-
-var Parser = {
-    Actions: []
+function createStatItem(type, count){
+    const p = document.createElement('p');
+            p.className = 'stat-item';
+            const typeSpan = document.createElement('span');
+            typeSpan.className = 'stat-type';
+            typeSpan.textContent = type;
+            const countSpan = document.createElement('span');
+            countSpan.className = 'stat-count';
+            countSpan.textContent = count;
+            p.append(typeSpan, countSpan);
+            p.onclick = () => console.log(Parser.ActionTypes[type].Actions);
+            trans_stat.append(p);
+        
 }
 
-var actions1 = [];
+
+
+
+const dateCounts = {};
+
+var Parser = {
+    Actions: [],
+    ActionTypes: []
+}
+
+var actionsarray = [];
 var actions2;
 function format(){
     data.actions.forEach(action => {
@@ -214,19 +225,39 @@ function formatAction(offset, data) {
 
     data.actions.forEach(action => {
         Parser.Actions.push(action);
-
-
-
-
-        actionsjson.push(action);
-        actions.push(JSON.stringify(action));
-        actionTypes[action.type] = (actionTypes[action.type] || 0) + 1;
+        if(!Parser.ActionTypes[action.type]){
+            Parser.ActionTypes[action.type] = {Actions: [], Count: 0};
+        }
+        Parser.ActionTypes[action.type].Count += 1;
+        //if(!Parser.ActionTypes[action.type].Actions) Parser.ActionTypes[action.type].Actions = [];
+        Parser.ActionTypes[action.type].Actions.push(action);
+        console.log(new Date(action.start_utime * 1000).toLocaleDateString())
+        // actionsjson.push(action);
+        // actions.push(JSON.stringify(action));
+        // 
+ 
+        const date = new Date(action.start_utime * 1000).toLocaleDateString();
+        dateCounts[date] = (dateCounts[date] || 0) + 1;
     });
+
+    // 2. Генерируем все дни 2025 года
+    const startDate = new Date(2025, 0, 1); // 1 января 2025
+    const endDate = new Date(2025, 11, 31); // 31 декабря 2025
+    const dateArray = [];
+
+    for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toLocaleDateString();
+        dateArray.push({
+            date: dateStr,
+            count: dateCounts[dateStr] || 0
+        });
+    }
     console.log(Parser.Actions);
     console.log(JSON.stringify(Parser.Actions));
     Object.entries(data.address_book).forEach(([hex, { user_friendly, domain }]) => {
      var count = actions.toString().split(hex).length;
      const existing = address_book.find(item => item.hex === hex);
+  
 if (existing) {
 existing.count = count;
 } else {
@@ -234,7 +265,29 @@ address_book.push({ base64: user_friendly, hex, dns: domain, isWallet: user_frie
 
 }
     });
+    function createActivityCalendar() {
+        const container = document.getElementById('calendar');
+        container.className = 'activity-calendar';
+
+        // Создаем блоки для каждого дня
+        dateArray.forEach(item => {
+            const day = document.createElement('div');
+            day.className = `day count-${Math.min(item.count, 4)}`;
+            day.setAttribute('data-tooltip', `${item.date}: ${item.count} actions`);
+            container.appendChild(day);
+        });
+    }
+
+     createActivityCalendar();
 }
+
+
+
+
+        // 3. Создаем разметку
+     
+        // Вызываем функцию для рендеринга
+
 document.addEventListener('keydown', (event) => {
 if (event.ctrlKey && event.key === 'q') {
 event.preventDefault();

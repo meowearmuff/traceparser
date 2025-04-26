@@ -1,5 +1,6 @@
 
 :root {
+    --background-color: #080b0e;
     --primary-color: #151b21; /* Объявление переменной */
     --font-size: 16px;
   }
@@ -16,7 +17,7 @@ body {
 .optTabs {
     display: none;
     flex-direction: column;
-        margin: 10px;
+    margin: 10px 15px 10px 15px;
         background: var(--primary-color);
         padding: 5px;
         border-radius: 10px;
@@ -27,12 +28,11 @@ body {
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: #293138;
+    background: var(--background-color);
 }
 
 .search-bar {
     padding: 16px;
-    background: #151b21;
     display: flex;
     gap: 8px;
 }
@@ -70,8 +70,7 @@ body {
     flex-direction: column;
     gap: 5px;
     background-color: var(--primary-color);
-    margin-top: 10px;
-    margin: 10px;
+    margin: 10px 15px 10px 15px;
     background: var(--primary-color);
     padding: 5px;
     border-radius: 10px;
@@ -90,7 +89,7 @@ body {
     display: none;
 }
 
-.statItem {
+.stat-item {
     padding: 5px;
     display: flex;
     color: grey;
@@ -101,6 +100,17 @@ body {
     padding-left: 10px;
     padding-right: 10px;
 }
+
+.stat-type {
+    width: 200px;
+}
+
+.stat-count {
+    width: 100%;
+    color: white;
+    text-align: right;
+}
+
 
 .wallItem {
     display: flex;
@@ -126,9 +136,10 @@ body {
     display: none;
     margin-top: 5px;
     margin-bottom: 0;
-    margin: 10px;
+    margin: 10px 15px 10px 15px;
     background: var(--primary-color);
     padding: 5px;
+
     border-radius: 10px;
 }
 
@@ -147,6 +158,14 @@ body {
 }
 
 .s-container::-webkit-scrollbar-thumb {
+    background: #5b89df;
+}
+
+.cscroll::-webkit-scrollbar {
+    width: 5px;
+}
+
+.cscroll::-webkit-scrollbar-thumb {
     background: #5b89df;
 }
 
@@ -190,6 +209,7 @@ body {
     display: flex;
     width: 100%;
     z-index: 200;
+    background-color: #080b0e;
 }
 .menu *:hover {
     background-color: #293138;
@@ -265,10 +285,10 @@ body {
 }
 
 .backButton, .topButton, .loadButton {
-    background: #151b21;
+    background: #1e2e3f;
     display: none;
     color: white;
-    height: 60px;
+    height: 40px;
     justify-content: center;
     align-items: center;
     font-size: 16px;
@@ -276,8 +296,70 @@ body {
     outline: none;
     cursor: pointer;
     flex: 1;
+    margin: 10px;
+    border-radius: 10px;
 }
 
 .backButton.active {
     display: flex;
+}
+
+
+
+
+
+
+
+.cscroll {
+    overflow-x: auto;
+    overflow-y: hidden;
+    min-height: 165px;
+    display: flex;
+    margin: 10px;
+}
+.activity-calendar {
+    display: grid;
+    grid-template-columns: repeat(37, 12px); /* 53 недели в году */
+    grid-template-rows: repeat(10, 12px);
+    gap: 2px;
+
+    margin: 5px;
+    max-width: 590px;
+    border-radius: 6px;
+    width: 100%;
+    justify-content: center;
+}
+
+.day {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: #477dce63; /* Серый для неактивных дней */
+    position: relative;
+}
+
+.day:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    background: #24292e;
+    color: #fff;
+    padding: 5px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    z-index: 10;
+}
+
+.count-1 { background: #007bff; }
+.count-2 { background: #0269d8; }
+.count-3 { background: #0056b3; }
+.count-4 { background: #003c7c; }
+
+h1 {
+    text-align: center;
+    color: #24292e;
+    margin-bottom: 20px;
 }
