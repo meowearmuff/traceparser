@@ -11,6 +11,7 @@ const btn_top = $(".topButton");
 const btn_back = $(".backButton");
 const btn_load = $(".loadButton")
 const trans_stat = $(".transStat-container");
+const datecont = $(".datesList-container")
 
 
 var tabid = 0; var walletx;
@@ -22,8 +23,8 @@ dc.addEventListener('DOMContentLoaded', () => {
     overlay.style.transition = 'all 0.5s';
     if (window.Telegram && window.Telegram.WebApp) {
         window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.setHeaderColor('#151b21');
-        window.Telegram.WebApp.setBackgroundColor('#151b21');
+        window.Telegram.WebApp.setHeaderColor('#080b0e');
+        window.Telegram.WebApp.setBackgroundColor('#080b0e');
     } else {
         console.error("Telegram Web App не инициализирован");
     }
@@ -66,7 +67,7 @@ const selectors = {
     backBtn: ".backButton",
     topBtn: ".topButton",
     overlay: '#menuOverlay',
-    tabs: { wallets: '#walletsTab', contracts: '#contractsTab', comments: '#commentsTab' },
+    tabs: { wallets: '#walletsTab', contracts: '#contractsTab', comments: '#commentsTab', dates: "#datesTab" },
     containers: { wallets: '.walletList-container', contracts: '.contractList-container', comments: '.commentsList-container' }
 };
 
@@ -76,12 +77,14 @@ const elements = {
     backBtn: $(selectors.backBtn),
     overlay: $(selectors.overlay),
     containers: {
+        dates: $(".datesList-container"),
         wallets: $(selectors.containers.wallets),
         contracts: $(selectors.containers.contracts),
         comments: $(selectors.containers.comments)
     }
 };
 const tabActions = {
+    dates: () => showContainer(".dateList-container"),
     wallets: () => showContainer(selectors.containers.wallets),
     contracts: () => showContainer(selectors.containers.contracts),
     comments: () => showContainer(selectors.containers.comments)
@@ -172,6 +175,7 @@ function formatWalletList() {
 }
 
 function formatStat() {
+    show(trans_stat);
     show(options);
     removeall(trans_stat);
 
@@ -196,6 +200,20 @@ function createStatItem(type, count){
         
 }
 
+
+function createDateItem(type, count){
+    const p = document.createElement('p');
+            p.className = 'stat-item';
+            const typeSpan = document.createElement('span');
+            typeSpan.className = 'stat-type';
+            typeSpan.textContent = type;
+            const countSpan = document.createElement('span');
+            countSpan.className = 'stat-count';
+            countSpan.textContent = count;
+            p.append(typeSpan, countSpan);
+            p.onclick = () => console.log(Parser.ActionTypes[type].Actions);
+            datecont.append(p);
+}
 
 
 
@@ -251,6 +269,8 @@ function formatAction(offset, data) {
             date: dateStr,
             count: dateCounts[dateStr] || 0
         });
+
+       if(dateCounts[dateStr]) createDateItem(dateStr,  dateCounts[dateStr])
     }
     console.log(Parser.Actions);
     console.log(JSON.stringify(Parser.Actions));

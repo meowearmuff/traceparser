@@ -55,6 +55,15 @@ body {
     outline: none;
 }
 
+.tip {
+    color: grey;
+    justify-content: center;
+    display: flex;
+    height: 50vh;
+    font-size: 25px;
+    align-items: center;
+}
+
 .search-button {
     padding: 8px 12px;
     background: linear-gradient(hsla(0, 0%, 100%, 0.144), hsla(0, 0%, 100%, .07)), hsla(0, 0%, 100%, .03);
@@ -66,7 +75,7 @@ body {
 }
 
 .transStat-container {
-    display: flex;
+    display: none;
     flex-direction: column;
     gap: 5px;
     background-color: var(--primary-color);
@@ -76,16 +85,16 @@ body {
     border-radius: 10px;
 }
 
-.walletList-container, .contractList-container, .commentsList-container {
+.walletList-container, .contractList-container, .commentsList-container, .datesList-container {
     flex: 1;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    background-color: #293138;
+    background-color: var(--background-color);
     margin-top: 10px;
 }
 
-.contractList-container, .commentsList-container {
+.contractList-container, .commentsList-container{
     display: none;
 }
 
@@ -125,7 +134,7 @@ body {
     background: #373c4b;
 }
 
-.wallItem:hover, #walletsTab:hover, #contractsTab:hover, #commentsTab:hover {
+.wallItem:hover, #walletsTab:hover, #contractsTab:hover, #commentsTab:hover, #datesTab:hover {
     background: #373c4b;
 }
 
@@ -138,7 +147,7 @@ body {
     margin-bottom: 0;
     margin: 10px 15px 10px 15px;
     background: var(--primary-color);
-    padding: 5px;
+
 
     border-radius: 10px;
 }
@@ -177,7 +186,7 @@ body {
     background: #5b89df;
 }
 
-#walletsTab, #contractsTab, #commentsTab {
+#walletsTab, #contractsTab, #commentsTab, #datesTab {
     color: rgb(53, 106, 167);
     background-color: var(--primary-color);
     height: 40px;
@@ -211,9 +220,9 @@ body {
     z-index: 200;
     background-color: #080b0e;
 }
-.menu *:hover {
+/* .menu *:hover {
     background-color: #293138;
-}
+} */
 
 .overlay {
     position: fixed;
